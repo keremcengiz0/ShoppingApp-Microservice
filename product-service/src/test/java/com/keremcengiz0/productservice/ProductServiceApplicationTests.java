@@ -2,10 +2,13 @@ package com.keremcengiz0.productservice;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.keremcengiz0.productservice.dto.ProductCreateRequest;
+import com.keremcengiz0.productservice.model.Product;
 import com.keremcengiz0.productservice.repository.ProductRepository;
+import com.keremcengiz0.productservice.service.ProductService;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,6 +22,8 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -38,6 +43,12 @@ class ProductServiceApplicationTests {
 
 	@Autowired
 	private ProductRepository productRepository;
+
+	@Autowired
+	private ModelMapper modelMapper;
+
+	@Autowired
+	private ProductService productService;
 
 	@DynamicPropertySource
 	static void setProperties(@NotNull DynamicPropertyRegistry dynamicPropertyRegistry) {
@@ -63,6 +74,24 @@ class ProductServiceApplicationTests {
 				.description("iphone 13")
 				.price(BigDecimal.valueOf(1200))
 				.build();
+	}
+
+	@Test
+	void shouldReturnAllProducts() throws Exception {
+
+		List<Product> productList = Arrays.asList(
+				new Product("64242b06cb8a140b045afa84", "Xiaomi", "mi 11 lite", BigDecimal.valueOf(1000)),
+				new Product("64242b06cb8a140b045afa85", "Samsung", "S22", BigDecimal.valueOf(900))
+		);
+
+		productRepository.saveAll(productList);
+
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/product")
+						.contentType(MediaType.APPLICATION_JSON))
+						.andExpect(status().isOk());
+
+			Assertions.assertEquals(2, productRepository.findAll().size());
+
 	}
 
 }
